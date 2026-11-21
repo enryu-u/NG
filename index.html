@@ -40,7 +40,6 @@
   .so-celular{display:none}
   .topo .equipe{white-space:nowrap}
   @media(max-width:430px){.txt-longo{display:none}.topo .equipe{text-transform:capitalize}}
-  .bola img.logo-img{width:72%;height:auto;object-fit:contain}
   .menu-btn{display:none;margin-left:auto;border:0;background:none;width:44px;height:44px;cursor:pointer}
   @media(max-width:860px){.topo nav{display:none}.topo .equipe{margin-left:auto;padding:8px 12px;font-size:13px}.menu-btn{display:block;margin-left:4px}
     .topo nav.aberto{display:flex;position:absolute;top:72px;left:0;right:0;flex-direction:column;gap:0;background:#fff;border-bottom:1px solid var(--linha);padding:8px 4vw 16px}
@@ -320,7 +319,6 @@ const EMPRESA = {
   instagram: '',
   atendimento: '',
   sistema: 'https://script.google.com/macros/s/AKfycbzl1kGrjlVBLEp7QX4OR1v5rKvQrQWtG0B72uQinIzS9FSksMd_-RpyF83BwTJ9SVl65A/exec',
-  logoImagem: 'Arcos Turquesa em Movimento.png',  // imagem do logo (na mesma pasta do site). Em branco = usa o desenho animado.
   buscarDadosDoSistema: true,               // telefone, e-mail, endereço etc. vêm da aba DADOS do sistema (fácil de manter)
   registrarContatos: true                   // avisa o sistema quando alguém toca em WhatsApp, e-mail, telefone ou envia o formulário
 };
@@ -341,13 +339,7 @@ function logo(alvo, tam, simbolo, classe) {
 logo('logo-topo', .42, false, 'intro');
 const heroLogo = logo('logo-hero', 2.3, true, 'intro');
 setTimeout(() => { heroLogo.classList.remove('intro'); void heroLogo.offsetWidth; heroLogo.classList.add('vento'); }, 2200);
-/* Logo em imagem (arquivo na mesma pasta do site). Se não carregar, fica o desenho animado. */
-if (EMPRESA.logoImagem) {
-  const im = new Image();
-  im.className = 'logo-img'; im.alt = 'NG Ar Condicionado';
-  im.onload = () => { const b = document.getElementById('logo-hero'); b.innerHTML = ''; b.appendChild(im); };
-  im.src = encodeURI(EMPRESA.logoImagem);
-}
+
 logo('logo-rodape', .42);
 
 /* Avisa o sistema (aba CONTATOS DO SITE) sem atrasar o visitante. */

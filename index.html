@@ -368,7 +368,9 @@ function aplicarDados() {
   document.querySelectorAll('[data-mapa]').forEach(a => a.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(EMPRESA.endereco));
   document.querySelectorAll('[data-cnpj]').forEach(e => e.textContent = EMPRESA.cnpj);
   document.querySelectorAll('[data-sistema]').forEach(a => { a.href = EMPRESA.sistema; a.target = '_blank'; a.rel = 'noopener'; });
-  document.querySelectorAll('[data-insta]').forEach(e => { e.style.display = EMPRESA.instagram ? '' : 'none'; const u = EMPRESA.instagram.replace(/^@/, ''); e.href = 'https://instagram.com/' + u; const b = e.querySelector('b'); if (b) b.textContent = '@' + u; });
+  // aceita "@usuario", "usuario" ou o link completo (https://www.instagram.com/usuario?...)
+  const insta = String(EMPRESA.instagram || '').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/[/?#].*$/, '').replace(/^@/, '');
+  document.querySelectorAll('[data-insta]').forEach(e => { e.style.display = insta ? '' : 'none'; e.href = 'https://instagram.com/' + insta; const b = e.querySelector('b'); if (b) b.textContent = '@' + insta; });
   document.querySelectorAll('[data-atend]').forEach(e => { e.style.display = EMPRESA.atendimento ? '' : 'none'; const b = e.querySelector('b'); if (b) b.textContent = EMPRESA.atendimento; });
 }
 document.querySelectorAll('[data-zap]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => registrar('whatsapp', { botao: a.textContent.trim().slice(0, 60) || 'WhatsApp' })); });

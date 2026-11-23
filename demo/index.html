@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sistema NG · Demonstração</title>
+<meta name="description" content="Demonstração do Sistema NG Ar Condicionado com dados de exemplo.">
+<meta name="theme-color" content="#2f4656">
+<link rel="icon" type="image/png" href="../logo-ng-simbolo.png">
+<style>
+  html, body { margin: 0; height: 100%; background: #0e171b; font: 14px Arial, Helvetica, sans-serif; overflow: hidden; }
+  #app { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #0e171b; }
+  #motor { display: none; }
+  #carregando { position: fixed; inset: 0; display: grid; place-items: center; background: #0e171b; color: #cfe0e6; z-index: 5; text-align: center; padding: 16px; }
+  #carregando b { display: block; font-size: 18px; margin-bottom: 6px; color: #fff; }
+  .gira { width: 34px; height: 34px; border: 3px solid #35505c; border-top-color: #0aa6cd; border-radius: 50%; margin: 0 auto 14px; animation: g 0.8s linear infinite; }
+  @keyframes g { to { transform: rotate(360deg); } }
+  #faixa { position: fixed; left: 10px; bottom: 10px; z-index: 10; background: #1f3340; color: #fff; padding: 8px 10px; border-radius: 12px; box-shadow: 0 4px 16px #0006;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap; max-width: calc(100vw - 20px); box-sizing: border-box; }
+  #faixa b { color: #5fd3ee; font-size: 12px; }
+  #faixa select, #faixa button { font: 12px Arial; border-radius: 6px; border: 0; padding: 4px 8px; cursor: pointer; }
+  #faixa .x { background: none; color: #9fb5bd; }
+  #mini { position: fixed; left: 10px; bottom: 10px; z-index: 10; display: none; background: #1f3340; color: #5fd3ee; border: 0; border-radius: 999px; padding: 6px 12px; font: bold 12px Arial; cursor: pointer; box-shadow: 0 4px 16px #0006; }
+  @media (max-width: 899px) { #faixa, #mini { bottom: 84px; } }
+</style>
+</head>
+<body>
+<div id="carregando"><div><div class="gira"></div><b>Preparando a demonstração…</b>Sistema NG Ar Condicionado · dados de exemplo</div></div>
+<iframe id="motor" title="motor" aria-hidden="true"></iframe>
+<iframe id="app" title="Sistema NG (demonstração)"></iframe>
+<div id="faixa">
+  <b>DEMONSTRAÇÃO · dados de exemplo</b>
+  <select id="usuario" aria-label="Entrar como">
+    <option value="thais">Thais (escritório)</option>
+    <option value="nilton">Nilton (técnico)</option>
+    <option value="admin">Administrador</option>
+  </select>
+  <button id="recomecar" title="Apaga o que foi feito e volta aos dados de exemplo">Recomeçar</button>
+  <button class="x" id="esconder" title="Esconder esta faixa">✕</button>
+</div>
+<button id="mini">DEMONSTRAÇÃO</button>
+<script>
+/* Página de fora da demonstração: liga a tela do sistema (app.html) ao motor (motor.html). Tudo roda neste navegador. */
+let motor = null;
+const app = document.getElementById('app'), sel = document.getElementById('usuario');
+const guardado = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const guardar = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) { } };
+// apaga o que a tela guardou no navegador (sessão, telas em cache) para não misturar usuários
+const limparTela = () => { try { Object.keys(localStorage).filter(k => /^ng/.test(k) && !/^ngTema|^ngLado|^ngMenuFixo/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) { } };
+
+window.ngChamar = (fn, args) => {
+  if (!motor) throw new Error('A demonstração ainda está carregando.');
+  if (typeof motor[fn] !== 'function') throw new Error('Função desconhecida: ' + fn);
+  return motor[fn].apply(motor, args || []);
+};
+window.ngMotorPronto = w => { motor = w; abrirApp(); };
+
+/* Documentos: o "PDF" da demonstração é o HTML do documento; vira um endereço blob: que abre como página. */
+const blobs = {};
+const esc = s => String(s == null ? '' : s instanceof Date ? s.toLocaleDateString('pt-BR') : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+window.ngDocUrl = url => {
+  if (!motor || !url) return null;
+  const u = String(url);
+  let m = u.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  if (m) {
+    if (blobs[m[1]]) return blobs[m[1]];
+    const f = motor.DriveApp._arq[m[1]]; if (!f) return null;
+    const tipo = f.getMimeType(), bytes = new Uint8Array(f.getBlob().getBytes().map(b => b & 255));
+    return (blobs[m[1]] = URL.createObjectURL(new Blob([bytes], { type: tipo === 'application/pdf' ? 'text/html;charset=utf-8' : tipo })));
+  }
+  m = u.match(/^https:\/\/docs\/(\w+)/);
+  if (m) {
+    const ss = motor.__planilhasNovas[m[1]]; if (!ss) return null;
+    const html = '<!doctype html><meta charset="utf-8"><title>' + esc(ss.nome) + '</title><body style="font:13px Arial;margin:16px;color:#22343c"><h2>' + esc(ss.nome) + ' <small style="color:#5f717a">(planilha de exemplo)</small></h2>' +
+      ss.abas.map(a => '<h3>' + esc(a.nome) + '</h3><table style="border-collapse:collapse">' + a.m.filter(l => l.some(c => c !== '')).map((l, i) => '<tr>' + l.map(c => '<' + (i ? 'td' : 'th') + ' style="border:1px solid #d9e3e7;padding:3px 6px;text-align:left">' + esc(c) + '</' + (i ? 'td' : 'th') + '>').join('') + '</tr>').join('') + '</table>').join('') + '</body>';
+    return URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  }
+  return null;
+};
+
+function abrirApp() {
+  const u = sel.value;
+  if (guardado('demo_u') !== u) { limparTela(); guardar('demo_u', u); }
+  app.src = 'app.html?u=' + encodeURIComponent(u);
+  app.onload = () => { document.getElementById('carregando').style.display = 'none'; };
+}
+function iniciarMotor() {
+  motor = null; Object.keys(blobs).forEach(k => { URL.revokeObjectURL(blobs[k]); delete blobs[k]; });
+  document.getElementById('carregando').style.display = '';
+  limparTela();
+  document.getElementById('motor').src = 'motor.html?' + Date.now();
+}
+sel.value = guardado('demo_u') || 'thais';
+sel.onchange = () => { limparTela(); guardar('demo_u', sel.value); abrirApp(); };
+document.getElementById('recomecar').onclick = iniciarMotor;
+document.getElementById('esconder').onclick = () => { document.getElementById('faixa').style.display = 'none'; document.getElementById('mini').style.display = 'block'; };
+document.getElementById('mini').onclick = () => { document.getElementById('faixa').style.display = ''; document.getElementById('mini').style.display = 'none'; };
+iniciarMotor();
+</script>
+</body>
+</html>
